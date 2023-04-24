@@ -5,10 +5,13 @@ import re
 import os
 from tqdm import tqdm
 
-def read_api_key_from_file(filename="gitaccesstoken.txt"):
-    if os.path.exists(filename):
-        with open(filename, "r") as file:
-            return file.read().strip()
+def read_api_key_from_file():
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    api_key_file = os.path.join(script_dir, "gitaccesstoken.txt")
+
+    if os.path.isfile(api_key_file):
+        with open(api_key_file, "r") as f:
+            return f.read().strip()
     return None
 
 def extract_username_and_repo(repo_url):
@@ -80,18 +83,25 @@ def select_language():
     return languages.get(choice, None)
 
 if __name__ == "__main__":
-        repo_url = input("Enter Full Repository URL:")
-        username, repo = extract_username_and_repo(repo_url)
-        if username is None or repo is None:
-            print("Invalid Repository URL")
-        else:
-            repo_url = f"{username}/{repo}"
-            api_key = read_api_key_from_file()
-            if not api_key:
-                api_key = input("Enter your GitHub Personal Access Token or press 'Enter' to continue without: ")
-            else:
-                print("API-Key has automatically been read from 'gitaccesstoken.txt'")
-            extension = select_language()
-            if extension:
-                copy_files_to_clipboard(repo_url, extension, api_key)
+    while True:
+        try:
+            repo_url = input("Enter Full Repository URL:")
+            username, repo = extract_username_and_repo(repo_url)
 
+            if repo_url == "test_exception":
+                raise ValueError("throwing exception for testing purposes")
+            if username is None or repo is None:
+                print("Invalid Repository URL")
+            else:
+                repo_url = f"{username}/{repo}"
+                api_key = read_api_key_from_file()
+                if not api_key:
+                    api_key = input("Enter your GitHub Personal Access Token or press 'Enter' to continue without: ")
+                else:
+                    print("API-Key has automatically been read from 'gitaccesstoken.txt'")
+                extension = select_language()
+                if extension:
+                    copy_files_to_clipboard(repo_url, extension, api_key)
+        except Exception as e:
+            print(f"A critical error occured: {e}")
+            print("Restarting...")
